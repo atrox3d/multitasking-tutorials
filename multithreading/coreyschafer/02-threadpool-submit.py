@@ -3,7 +3,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import time
 
 
-SECONDS = 1
+SECONDS = 10
 THREADS = 10
 
 
