@@ -12,3 +12,4 @@ wheels/
 
 # unignore gitignore
 !.gitignore
+!.keepme
