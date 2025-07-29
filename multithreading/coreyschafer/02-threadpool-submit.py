@@ -1,5 +1,5 @@
 from threading import Thread, Lock, current_thread
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import time
 
 
@@ -21,7 +21,7 @@ if __name__ == '__main__':
 
     with ThreadPoolExecutor() as executor:
         results = [executor.submit(worker, SECONDS) for _ in range(THREADS)]
-        for f in results:
+        for f in as_completed(results):
             print(f.result())
 
     stop = time.perf_counter()
