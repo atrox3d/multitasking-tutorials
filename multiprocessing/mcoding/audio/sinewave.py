@@ -46,4 +46,4 @@ def create_sinewave_file(
     write(output_filepath, sample_rate, scaled_signal)
 
     print(f"Successfully created '{output_filepath}'")
-    print("You can now play this file with any audio player.")
+    # print("You can now play this file with any audio player.")

@@ -32,9 +32,12 @@ def etl(filepath: str) -> tuple[str, float]:
     '''
     adds noise to wave file
     '''
+
+    # extract
     start_time = time.perf_counter()
     sample_rate, data = scipy.io.wavfile.read(filepath)
 
+    # transform
     # The original code had a TypeError because it tried to add a float array (the noise)
     # to an int16 array (the audio data) in-place.
     # The correct way to process audio is to convert it to a floating-point format,
@@ -56,6 +59,7 @@ def etl(filepath: str) -> tuple[str, float]:
     # 4. Convert the float signal back to int16
     final_data = (clipped_data * max_val).astype(np.int16)
 
+    # load
     new_filename = rename_filepath(filepath)
     scipy.io.wavfile.write(new_filename, sample_rate, final_data)
     end_time = time.perf_counter()
@@ -92,11 +96,12 @@ def create_input_wave_files(n:int, data_path:str=DATA_PATH) -> None:
     creates sample wave files
     '''
     for i in range(n):
-        create_sinewave_file(f'sine_wave{i}.wav', data_path)
+        create_sinewave_file(f'sine_wave{i:04d}.wav', data_path)
 
 
+TOTAL_FILES = 400
 if __name__ == "__main__":
     # print(rename_filepath( str(Path(__file__).resolve())))
     prepare_datadir(DATA_PATH)
-    create_input_wave_files(24, DATA_PATH)
+    create_input_wave_files(TOTAL_FILES, DATA_PATH)
     etl_demo(DATA_PATH)
