@@ -6,16 +6,19 @@ import time
 import numpy as np
 import scipy
 
-# just hack the sys.path to import root level packages
-
+# just hack the sys.path to import dame level packages
 sys.path.insert(0, str(Path(__file__).resolve()))
 from audio.sinewave import create_sine_wave, create_sinewave_file
+
 
 ROOT_PATH = str(Path(__file__).resolve().parent.parent.parent)
 DATA_PATH = str(Path(ROOT_PATH) / '.data')
 
 
 def prepare_datadir(data_path:str=DATA_PATH) -> None:
+    '''
+    recreate data directory
+    '''
     path = Path(DATA_PATH)
     if path.exists():
         print(f"Removing '{path}'...")
@@ -25,9 +28,12 @@ def prepare_datadir(data_path:str=DATA_PATH) -> None:
     assert path.exists()
 
 
-def etl(filename: str) -> tuple[str, float]:
+def etl(filepath: str) -> tuple[str, float]:
+    '''
+    adds noise to wave file
+    '''
     start_time = time.perf_counter()
-    sample_rate, data = scipy.io.wavfile.read(filename)
+    sample_rate, data = scipy.io.wavfile.read(filepath)
 
     # The original code had a TypeError because it tried to add a float array (the noise)
     # to an int16 array (the audio data) in-place.
@@ -50,30 +56,41 @@ def etl(filename: str) -> tuple[str, float]:
     # 4. Convert the float signal back to int16
     final_data = (clipped_data * max_val).astype(np.int16)
 
-    new_filename = rename_filepath(filename)
+    new_filename = rename_filepath(filepath)
     scipy.io.wavfile.write(new_filename, sample_rate, final_data)
     end_time = time.perf_counter()
-    return filename, end_time - start_time
+    return filepath, end_time - start_time
 
 
 def etl_demo(sounds_path:str) -> None:
+    '''
+    loads, adds noise, and saves wave files
+    '''
     filepaths = Path(sounds_path).glob('*.wav')
     start_time = time.perf_counter()
+
     for filepath in filepaths:
         _, duration = etl(str(filepath))
         print(f'{filepath}: completed in {duration:.2f}')
+    
     end_time = time.perf_counter()
     total_duration = end_time - start_time
     print(f'Total duration: {total_duration:.2f}')
 
 
 def rename_filepath(filepath:str, name_suffix:str = '-transformed') -> str:
+    '''
+    add suffix to filename keeping path and extension
+    '''
     return str(Path(filepath).with_stem(
         Path(filepath).stem + name_suffix
     ))
 
 
 def create_input_wave_files(n:int, data_path:str=DATA_PATH) -> None:
+    '''
+    creates sample wave files
+    '''
     for i in range(n):
         create_sinewave_file(f'sine_wave{i}.wav', data_path)
 
