@@ -1,5 +1,6 @@
 from pathlib import Path
 import sys
+import shutil
 import time
 
 import numpy as np
@@ -7,12 +8,21 @@ import scipy
 
 # just hack the sys.path to import root level packages
 
-ROOT_PATH = str(Path(__file__).resolve().parent.parent.parent)
-sys.path.insert(0, ROOT_PATH)
-from helpers.audio.sinewave import create_sine_wave, create_sinewave_file
+sys.path.insert(0, str(Path(__file__).resolve()))
+from audio.sinewave import create_sine_wave, create_sinewave_file
 
+ROOT_PATH = str(Path(__file__).resolve().parent.parent.parent)
 DATA_PATH = str(Path(ROOT_PATH) / '.data')
-assert Path(DATA_PATH).exists()
+
+
+def prepare_datadir(data_path:str=DATA_PATH) -> None:
+    path = Path(DATA_PATH)
+    if path.exists():
+        print(f"Removing '{path}'...")
+        shutil.rmtree(path)
+    print(f"Creating '{path}'...")
+    path.mkdir(exist_ok=True)
+    assert path.exists()
 
 
 def etl(filename: str) -> tuple[str, float]:
@@ -63,12 +73,13 @@ def rename_filepath(filepath:str, name_suffix:str = '-transformed') -> str:
     ))
 
 
-def create_input_wave_files(n:int) -> None:
+def create_input_wave_files(n:int, data_path:str=DATA_PATH) -> None:
     for i in range(n):
-        create_sinewave_file(f'sine_wave{i}.wav', DATA_PATH)
+        create_sinewave_file(f'sine_wave{i}.wav', data_path)
 
 
 if __name__ == "__main__":
-    print(rename_filepath( str(Path(__file__).resolve())))
-    create_input_wave_files(24)
+    # print(rename_filepath( str(Path(__file__).resolve())))
+    prepare_datadir(DATA_PATH)
+    create_input_wave_files(24, DATA_PATH)
     etl_demo(DATA_PATH)
