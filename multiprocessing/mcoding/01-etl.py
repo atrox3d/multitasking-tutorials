@@ -108,17 +108,19 @@ def create_input_wave_files(n:int, data_path:str=DATA_PATH) -> None:
     for i in range(n):
         create_sinewave_file(f'sine_wave{i:04d}.wav', data_path)
 
+
 app = Typer(
     help="A CLI to generate and process audio files.",
     add_completion=False,
     # invoke_without_command=True,  # This allows the callback to run as the default command
 )
 
+TOTAL_FILES = 400
 @app.callback(invoke_without_command=True)
 def main(
     # ctx: Typer,
     total_files: int = Option(400, "--files", "-n", help="Number of wave files to generate."),
-    cleanup: bool = Option(True, "--cleanup", "-c", help="Cleanup data directory after processing")
+    cleanup: bool = Option(TOTAL_FILES, "--cleanup", "-c", help="Cleanup data directory after processing")
 ):
     """
     Prepares data, creates wave files, and runs the ETL process.
