@@ -5,6 +5,7 @@ import time
 
 import numpy as np
 import scipy
+from typer import Option, Typer
 
 # just hack the sys.path to import dame level packages
 sys.path.insert(0, str(Path(__file__).resolve()))
@@ -15,14 +16,23 @@ ROOT_PATH = str(Path(__file__).resolve().parent.parent.parent)
 DATA_PATH = str(Path(ROOT_PATH) / '.data')
 
 
-def prepare_datadir(data_path:str=DATA_PATH) -> None:
+def remove_datadir(data_path:str=DATA_PATH) -> None:
     '''
-    recreate data directory
+    remove data directory
     '''
     path = Path(DATA_PATH)
     if path.exists():
         print(f"Removing '{path}'...")
         shutil.rmtree(path)
+        print(f"Successfully removed '{path}'")
+
+
+def prepare_datadir(data_path:str=DATA_PATH) -> None:
+    '''
+    recreate data directory
+    '''
+    path = Path(DATA_PATH)
+    remove_datadir(data_path)
     print(f"Creating '{path}'...")
     path.mkdir(exist_ok=True)
     assert path.exists()
@@ -98,10 +108,28 @@ def create_input_wave_files(n:int, data_path:str=DATA_PATH) -> None:
     for i in range(n):
         create_sinewave_file(f'sine_wave{i:04d}.wav', data_path)
 
+app = Typer(
+    help="A CLI to generate and process audio files.",
+    add_completion=False,
+    # invoke_without_command=True,  # This allows the callback to run as the default command
+)
 
-TOTAL_FILES = 400
-if __name__ == "__main__":
-    # print(rename_filepath( str(Path(__file__).resolve())))
+@app.callback(invoke_without_command=True)
+def main(
+    # ctx: Typer,
+    total_files: int = Option(400, "--files", "-n", help="Number of wave files to generate."),
+    cleanup: bool = Option(True, "--cleanup", "-c", help="Cleanup data directory after processing")
+):
+    """
+    Prepares data, creates wave files, and runs the ETL process.
+    """
+    # if ctx.invoked_subcommand is None:
     prepare_datadir(DATA_PATH)
-    create_input_wave_files(TOTAL_FILES, DATA_PATH)
+    create_input_wave_files(total_files, DATA_PATH)
     etl_demo(DATA_PATH)
+    if cleanup:
+        remove_datadir(DATA_PATH)
+
+
+if __name__ == "__main__":
+    app()
