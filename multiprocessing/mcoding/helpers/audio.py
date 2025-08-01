@@ -1,6 +1,10 @@
 from pathlib import Path
+import time
 import numpy as np
+import scipy
 from scipy.io.wavfile import write
+
+from helpers import fs
 
 # --- Parameters for the audio signal ---
 SAMPLE_RATE = 44100  # Samples per second (CD quality)
@@ -47,3 +51,44 @@ def create_sinewave_file(
 
     print(f"Successfully created '{output_filepath}'")
     # print("You can now play this file with any audio player.")
+
+
+
+
+def etl(filepath: str) -> tuple[str, float]:
+    '''
+    adds noise to wave file
+    '''
+
+    # extract
+    start_time = time.perf_counter()
+    sample_rate, data = scipy.io.wavfile.read(filepath)
+
+    # transform
+    # The original code had a TypeError because it tried to add a float array (the noise)
+    # to an int16 array (the audio data) in-place.
+    # The correct way to process audio is to convert it to a floating-point format,
+    # apply transformations, and then convert it back to its original integer format.
+
+    # 1. Normalize the int16 data to float64 in the range [-1.0, 1.0]
+    if data.dtype != np.int16:
+        raise TypeError("This ETL function currently only supports 16-bit WAV files.")
+    max_val = np.iinfo(np.int16).max
+    data_float = data.astype(np.float64) / max_val
+
+    # 2. Add some random noise. A small epsilon is needed for float signals.
+    eps = 0.01
+    noisy_data = data_float + np.random.normal(scale=eps, size=len(data_float))
+
+    # 3. Clip the signal to ensure it's within the valid [-1.0, 1.0] range
+    clipped_data = np.clip(noisy_data, -1.0, 1.0)
+
+    # 4. Convert the float signal back to int16
+    final_data = (clipped_data * max_val).astype(np.int16)
+
+    # load
+    new_filename = fs.rename_filepath(filepath)
+    scipy.io.wavfile.write(new_filename, sample_rate, final_data)
+    end_time = time.perf_counter()
+    return filepath, end_time - start_time
+
