@@ -40,7 +40,9 @@ def run(
     ):
         fs.prepare_datadir(DATA_PATH)
         create_input_wave_files(total_files, DATA_PATH)
+        
         etl_function(DATA_PATH)
+        
         if cleanup:
             fs.remove_datadir(DATA_PATH)
 
