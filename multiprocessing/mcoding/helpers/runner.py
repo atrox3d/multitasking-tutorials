@@ -9,11 +9,8 @@ sys.path.insert(0, str(Path(__file__).resolve()))
 from helpers import audio
 from helpers import fs
 
-ROOT_PATH = str(Path(__file__).resolve().parent.parent.parent)
-DATA_PATH = str(Path(ROOT_PATH) / '.data')
 
-
-def create_input_wave_files(n:int, data_path:str=DATA_PATH) -> None:
+def create_input_wave_files(n:int, data_path:str) -> None:
     '''
     creates sample wave files
     '''
