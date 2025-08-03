@@ -25,8 +25,6 @@ def create_input_wave_files(n:int, data_path:str=DATA_PATH) -> None:
 
 def run(
     etl: Callable[[str], None],
-    # args: list = None,
-    # kwargs: dict = None,
     total_files:int,
     data_path: str,
     help:str="A CLI to generate and process audio files.",
