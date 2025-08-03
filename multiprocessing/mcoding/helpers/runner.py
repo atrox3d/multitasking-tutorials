@@ -1,6 +1,5 @@
 from pathlib import Path
 import sys
-import time
 from typing import Callable
 
 from typer import Option, Typer
@@ -24,12 +23,13 @@ def create_input_wave_files(n:int, data_path:str=DATA_PATH) -> None:
     print(f'Successfully created {n} wave files')
 
 
-TOTAL_FILES = 400
-
-
 def run(
-    etl: Callable,
-    help="A CLI to generate and process audio files.",
+    etl: Callable[[str], None],
+    # args: list = None,
+    # kwargs: dict = None,
+    total_files:int,
+    data_path: str,
+    help:str="A CLI to generate and process audio files.",
 ):
     app = Typer(
         add_completion=False,
@@ -41,20 +41,19 @@ def run(
     @app.callback(invoke_without_command=True)
     def main(
         # ctx: Typer,
-        total_files: int = Option(TOTAL_FILES, "--files", "-n", help="Number of wave files to generate."),
+        total_files: int = Option(total_files, "--files", "-n", help="Number of wave files to generate."),
         cleanup: bool = Option(True, "--cleanup/--no-cleanup", "-c", help="Cleanup data directory after processing")
     ):
         """
         Prepares data, creates wave files, and runs the ETL process.
         """
         # if ctx.invoked_subcommand is None:
-        fs.prepare_datadir(DATA_PATH)
-        create_input_wave_files(total_files, DATA_PATH)
+        fs.prepare_datadir(data_path)
+        create_input_wave_files(total_files, data_path)
         
-        etl(DATA_PATH)
+        etl(data_path)
         
         if cleanup:
-            fs.remove_datadir(DATA_PATH)
+            fs.remove_datadir(data_path)
 
-
-        app()
+    app()
