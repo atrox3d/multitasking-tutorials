@@ -1,4 +1,5 @@
 from multiprocessing.pool import ThreadPool
+from multiprocessing import Pool
 from common import (
     DATA_PATH,
     TOTAL_FILES,
@@ -17,9 +18,9 @@ def etl_demo(sounds_path:str) -> None:
     start_time = time.perf_counter()
 
     print(f'Processing {len(filepaths)} files...')
-    with ThreadPool() as pool:
+    with Pool() as pool:
         results = pool.imap_unordered(audio.etl, filepaths)
-        # this actually runs the threads
+        # this actually runs the processes
         for filename, duration in results:
             pass
             # print(f'{filename}: completed in {duration:.2f}')
