@@ -33,7 +33,7 @@ def create_sinewave_file(
     duration: float = DURATION,
     frequency: float = FREQUENCY,
     amplitude: float = AMPLITUDE,
-) -> None:
+) -> str:
     # print(f"Generating a {duration}s sine wave at {frequency}Hz...")
 
     # 1. Generate the floating-point audio signal
@@ -51,6 +51,9 @@ def create_sinewave_file(
 
     # print(f"Successfully created '{output_filepath}'")
     # print("You can now play this file with any audio player.")
+    return str(output_filepath)
+
+
 
 
 

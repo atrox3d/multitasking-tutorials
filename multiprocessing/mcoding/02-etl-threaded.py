@@ -27,9 +27,10 @@ def etl_demo(sounds_path:str) -> None:
 
     print(f'Processing {len(filepaths)} files...')
     with ThreadPool() as pool:
-        for filename, duration in pool.imap_unordered(audio.etl, filepaths):
-            # print(f'{filename}: completed in {duration:.2f}')
+        results = pool.imap_unordered(audio.etl, filepaths)
+        for filename, duration in results:
             pass
+            # print(f'{filename}: completed in {duration:.2f}')
     print(f'Successfully processed {len(filepaths)} files')
 
     
@@ -60,7 +61,7 @@ TOTAL_FILES = 400
 def main(
     # ctx: Typer,
     total_files: int = Option(TOTAL_FILES, "--files", "-n", help="Number of wave files to generate."),
-    cleanup: bool = Option(True, "--cleanup", "-c", help="Cleanup data directory after processing")
+    cleanup: bool = Option(True, "--cleanup/--no-cleanup", "-c", help="Cleanup data directory after processing")
 ):
     """
     Prepares data, creates wave files, and runs the ETL process.
