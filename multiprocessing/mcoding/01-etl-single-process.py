@@ -17,13 +17,15 @@ def etl_demo(sounds_path:str) -> None:
     '''
     loads, adds noise, and saves wave files
     '''
-    filepaths = Path(sounds_path).glob('*.wav')
+    filepaths = list(Path(sounds_path).glob('*.wav'))
     start_time = time.perf_counter()
 
+    print(f'Processing {len(filepaths)} files...')
     for filepath in filepaths:
         _, duration = audio.etl(str(filepath))
-        print(f'{filepath}: completed in {duration:.2f}')
-    
+        # print(f'{filepath}: completed in {duration:.2f}')
+    print(f'Successfully processed {len(filepaths)} files')
+
     end_time = time.perf_counter()
     total_duration = end_time - start_time
     print(f'Total duration: {total_duration:.2f}')
@@ -33,8 +35,11 @@ def create_input_wave_files(n:int, data_path:str=DATA_PATH) -> None:
     '''
     creates sample wave files
     '''
+    print(f'Creating {n} wave files...')
     for i in range(n):
         audio.create_sinewave_file(f'sine_wave{i:04d}.wav', data_path)
+    print(f'Successfully created {n} wave files')
+
 
 
 app = Typer(
