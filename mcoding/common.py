@@ -7,6 +7,6 @@ sys.path.insert(0, str(Path(__file__).resolve()))
 from helpers import audio
 from helpers import runner
 
-ROOT_PATH = str(Path(__file__).resolve().parent.parent.parent)
+ROOT_PATH = str(Path(__file__).resolve().parent.parent)
 DATA_PATH = str(Path(ROOT_PATH) / '.data')
 TOTAL_FILES = 400
