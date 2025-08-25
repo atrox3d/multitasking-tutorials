@@ -11,14 +11,15 @@ async def fetch_data(param):
 
 async def main():
     """
-    0s                  1s                  2s
-    |                   |                   |   
-    task1...............end task1           |
-    |                   |                   |
-    task2...............|...................end task2
-    |                   |                   |
-    |                   |                   await task1
-    |                   |                   await task2
+    0s      |        |           1s                  2s
+    |       |        |           |                   |   
+    task1...sleep1...|...........end task1           |
+    |       |        |           |                   |
+    |       |        |           await task2.........|
+    |       |        |           |                   |
+    |       task2....sleep2......|...................end task2
+    |                            |                   |
+    |                            |                   await task1
     """
     task1 = asyncio.create_task(fetch_data(1))      # task obj, scheduled in the loop, runs concurrently
     task2 = asyncio.create_task(fetch_data(2))      # task obj, scheduled in the loop, runs concurrently
