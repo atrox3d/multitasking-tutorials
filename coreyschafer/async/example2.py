@@ -19,17 +19,17 @@ async def main():
     |                   |                   |                   |                   |
     |                   |                   await coro2.........|...................end coro2
     """
-    task1 = fetch_data(1)                   # coroutine obj, runs immediately when awaited
-    task2 = fetch_data(2)                   # coroutine obj, runs immediately when awaited
+    coro1 = fetch_data(1)                   # coroutine obj, runs immediately when awaited
+    coro2 = fetch_data(2)                   # coroutine obj, runs immediately when awaited
                                             # time 0s
                                             # ...
     print('waiting 1 second...')
     await asyncio.sleep(1)                  # nothing runs for 1 seconds
                                             # time 1s
     
-    result1 = await task1                   # time 2s: task1 is run and has finished when awaited
+    result1 = await coro1                   # time 2s: task1 is run and has finished when awaited
     print('fetch 1 fully completed')
-    result2 = await task2                   # time 4s: task2 is run and has finished when awaited
+    result2 = await coro2                   # time 4s: task2 is run and has finished when awaited
     print('fetch 2 fully completed')
     return [result1, result2]               # time 4s
 
