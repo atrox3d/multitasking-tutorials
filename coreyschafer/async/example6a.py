@@ -20,15 +20,15 @@ def fetch_data(param):
 
 async def main():
     """
-    0s      |         |             1s                  2s
-    |       |         |             |                   |   
-    process1...sleep1.|............ end process 1       |
+    0s  |             |             1s                  2s
+    |   |             |             |                   |   
+    |   process1...sleep1...........end process 1       |
     |       |         |             |                   |
     |       process2..|.sleep2......|...................end process2
     |       |         |             |                   |
-    |       |         await task1...|
-    |                               |                   |
-    |                 await task2...|...................|
+    await task1.......|.............|
+    |                 |             |                   |
+    |                 |             await task2.........|
     """
     timestamp('start')
     loop = asyncio.get_running_loop()                               # get the async event loop

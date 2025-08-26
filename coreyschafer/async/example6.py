@@ -19,15 +19,15 @@ def fetch_data(param):
 
 async def main():
     """
-    0s      |        |             1s                  2s
-    |       |        |             |                   |   
-    thread1...sleep1.|............ end thread1           |
-    |       |        |             |                   |
-    |       thread2....sleep2......|...................end thread2
-    |       |        |             |                   |
-    |       |        await task1...|
-    |                              |                   |
-    |                await task2...|...................|
+    0s  |             |             1s                  2s
+    |   |             |             |                   |   
+    |   thread1..sleep1.............end thread1         |
+    |       |         |             |                   |
+    |       thread2.. |.sleep2......|...................end thread2
+    |       |         |             |                   |
+    await task1.......|.............|
+    |                 |             |                   |
+    |                 |             await task2.........|
     """
     timestamp('start')
     task1 = asyncio.create_task(                    # task obj, scheduled in the loop
