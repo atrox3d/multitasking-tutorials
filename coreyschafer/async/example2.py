@@ -2,6 +2,10 @@ import time
 import asyncio
 
 
+def timestamp(message:str) -> None:
+    print(f'{time.perf_counter():.0f} | {message}')
+
+
 async def fetch_data(param):
     print((f'do something with {param}...'))
     await asyncio.sleep(param)
@@ -19,18 +23,22 @@ async def main():
     |                   |                   |                   |                   |
     |                   |                   await coro2.........|...................end coro2
     """
+    timestamp('start')
     coro1 = fetch_data(1)                   # coroutine obj, runs immediately when awaited
     coro2 = fetch_data(2)                   # coroutine obj, runs immediately when awaited
                                             # time 0s
                                             # ...
-    print('waiting 1 second...')
+    timestamp('waiting 1 second...')
     await asyncio.sleep(1)                  # nothing runs for 1 seconds
                                             # time 1s
     
+    timestamp('await coro1')
     result1 = await coro1                   # time 2s: main is suspended until task1 is run and has finished
-    print('fetch 1 fully completed')
+    timestamp('fetch 1 fully completed')
+    
+    timestamp('await coro2')
     result2 = await coro2                   # time 4s: main is suspended until task2 is run and has finished
-    print('fetch 2 fully completed')
+    timestamp('fetch 2 fully completed')    
     return [result1, result2]               # time 4s
 
 
@@ -39,7 +47,7 @@ async def main():
 t1 = time.perf_counter()
 
 results = asyncio.run(main())
-print(results)
+timestamp(results)
 
 t2 = time.perf_counter()
 print(f'finished in {t2-t1:.2f} seconds')   # time 4s: no performance gain

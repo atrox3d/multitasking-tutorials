@@ -1,6 +1,10 @@
 import time
 
 
+def timestamp(message:str) -> None:
+    print(f'{time.perf_counter():.0f} | {message}')
+
+
 def fetch_data(param):
     print((f'do something with {param}...'))
     time.sleep(param)
@@ -16,17 +20,18 @@ def main():
     |                   |                   |                   |
     |                   fetch_data(2).......|...................end fetch_data(1)
     """
+    timestamp('start')
     result1 = fetch_data(1)                 # time 1s: task1 has finished
-    print('fetch 1 fully completed')
+    timestamp('fetch 1 fully completed')
     result2 = fetch_data(2)                 # time 3s: task2 has finished
-    print('fetch 2 fully completed')
+    timestamp('fetch 2 fully completed')
     return [result1, result2]
 
 
 t1 = time.perf_counter()
 
 results = main()
-print(results)
+timestamp(results)
 
 t2 = time.perf_counter()
 print(f'finished in {t2-t1:.2f} seconds')   # time 3s: full sequential time
