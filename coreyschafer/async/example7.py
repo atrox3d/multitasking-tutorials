@@ -41,7 +41,7 @@ async def main():
     # gather tasks
     timestamp('start')                              # time 0s:
     tasks = [
-        asyncio.create_task(fetch_data(i, True))    # time 2s: create a list of tasks
+        asyncio.create_task(fetch_data(i, True))    # time 2s: create a list of tasks that wrap coroutines
         for i in range(1, 3)
     
     ]
