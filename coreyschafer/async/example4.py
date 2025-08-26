@@ -15,9 +15,9 @@ async def main():
     |       |        |           |                   |   
     task1...sleep1...|...........end task1           |
     |       |        |           |                   |
-    |       |        |           await task2.........|
-    |       |        |           |                   |
     |       task2....sleep2......|...................end task2
+    |       |        |           |                   |
+    |       |        await task2.|...................|
     |                            |                   |
     |                            |                   await task1
     """

@@ -24,8 +24,8 @@ async def main():
     |       |                    |          |         |              |
     |       |                    |          |         |              await task2
     """
-    task1 = asyncio.create_task(fetch_data(1))      # task obj, blocking, scheduled in the loop, runs concurrently
-    task2 = asyncio.create_task(fetch_data(2))      # task obj, blocking, scheduled in the loop, runs concurrently
+    task1 = asyncio.create_task(fetch_data(1))      # task obj, scheduled in the loop, cannot run concurrently because of time.sleep
+    task2 = asyncio.create_task(fetch_data(2))      # task obj, scheduled in the loop, cannot run concurrently because of time.sleep
                                                     # 
                                                     # time 0s: task 1 blocks for 1s
                                                     # time 1s: task1 has finished
