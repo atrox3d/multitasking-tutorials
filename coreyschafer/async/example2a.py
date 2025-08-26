@@ -27,10 +27,10 @@ async def main():
     await asyncio.sleep(1)                  # nothing runs for 1 seconds
                                             # time 1s
     
-    result2 = await coro2                   # time 3s: task2 is run and has finished when awaited
+    result2 = await coro2                   # time 3s: main is suspended until task2 is run and has finished
     print('fetch 2 fully completed')
     
-    result1 = await coro1                   # time 4s: task1 is run and has finished when awaited
+    result1 = await coro1                   # time 4s: main is suspended until task1 is run and has finished
     print('fetch 1 fully completed')
     return [result1, result2]               # time 4s
 
@@ -41,4 +41,4 @@ results = asyncio.run(main())
 print(results)
 
 t2 = time.perf_counter()
-print(f'finished in {t2-t1:.2f} seconds')   # no performance gain
+print(f'finished in {t2-t1:.2f} seconds')   # time 4s: no performance gain (1+1+2)

@@ -16,9 +16,9 @@ def main():
     |                   |                   |                   |
     |                   fetch_data(2).......|...................end fetch_data(1)
     """
-    result1 = fetch_data(1)             # time 1s: task1 has finished
+    result1 = fetch_data(1)                 # time 1s: task1 has finished
     print('fetch 1 fully completed')
-    result2 = fetch_data(2)             # time 3s: task2 has finished
+    result2 = fetch_data(2)                 # time 3s: task2 has finished
     print('fetch 2 fully completed')
     return [result1, result2]
 
@@ -29,4 +29,4 @@ results = main()
 print(results)
 
 t2 = time.perf_counter()
-print(f'finished in {t2-t1:.2f} seconds')
+print(f'finished in {t2-t1:.2f} seconds')   # time 3s: full sequential time
