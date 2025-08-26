@@ -4,7 +4,8 @@ from concurrent.futures import ProcessPoolExecutor
 
 
 def timestamp(message:str) -> None:
-    print(f'{time.perf_counter():.0f} | {message}')
+    global t1
+    print(f'{time.perf_counter() - t1:.2f}s | {message}')
 
 
 def fetch_data(param):
@@ -36,11 +37,11 @@ async def main():
         task1 = loop.run_in_executor(excecutor, fetch_data, 1)      # wrap process in task
         task2 = loop.run_in_executor(excecutor, fetch_data, 2)      # wrap process in task
     
-        timestamp('await task1')
+        timestamp('await process task1')
         result1 = await task1
         timestamp('fetch 1 fully completed')
         
-        timestamp('await task2')
+        timestamp('await process task2')
         result2 = await task2
         timestamp('fetch 2 fully completed')
     return [result1, result2]

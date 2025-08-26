@@ -2,7 +2,8 @@ import time
 
 
 def timestamp(message:str) -> None:
-    print(f'{time.perf_counter():.0f} | {message}')
+    global t1
+    print(f'{time.perf_counter() - t1:.2f}s | {message}')
 
 
 def fetch_data(param):
