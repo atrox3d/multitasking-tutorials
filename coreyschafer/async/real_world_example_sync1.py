@@ -1,4 +1,3 @@
-import re
 import shutil
 import time
 from pathlib import Path
@@ -25,9 +24,10 @@ PROCESSED_DIR = Path('data/processed_images')
 
 
 def download_image(session: requests.Session, url: str, img_num: int) -> Path:
+    t1 = time.perf_counter()
+    
     ts = int(time.time())
     url = f'{url}?ts={ts}'  # add timestamp for caching issues
-    print(f'Downloading url {url}...')
     
     response = session.get(url, timeout=10, allow_redirects=True, stream=True)
     response.raise_for_status()
@@ -40,7 +40,8 @@ def download_image(session: requests.Session, url: str, img_num: int) -> Path:
         for chunk in response.iter_content(chunk_size=8192):
             f.write(chunk)
     
-    print(f'Downloaded in {download_path}')
+    t2 = time.perf_counter()
+    print(f'Downloaded url {url[:url.find("?")]} in {download_path} in {t2 - t1:.2f} seconds.')
     return download_path
 
 
@@ -55,7 +56,6 @@ def download_images(urls: list[str]) -> list[Path]:
 
 
 def process_single_image(orig_path: Path, max_count: int = 20_000_000) -> Path:
-    print(f"Processing {orig_path.name}, {max_count = }...")
     t1 = time.perf_counter()
     save_path = PROCESSED_DIR / orig_path.name
     
@@ -70,7 +70,7 @@ def process_single_image(orig_path: Path, max_count: int = 20_000_000) -> Path:
         f.write(orig_path.read_bytes())
     
     t2 = time.perf_counter()
-    print(f"Finished processing {orig_path.name}, Total time taken: {t2 - t1:.2f} seconds.")
+    print(f"Finished processing {orig_path.name} ({max_count}), Total time taken: {t2 - t1:.2f} seconds.")
     return save_path
 
 
@@ -80,7 +80,6 @@ def process_images(orig_paths: list[Path], max_count: int = 20_000_000) -> list[
 
 
 if __name__ == '__main__':
-    t1 = time.perf_counter()
     
     shutil.rmtree(ORIGINAL_DIR, ignore_errors=True)
     
@@ -88,12 +87,21 @@ if __name__ == '__main__':
     PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
     
     # Run the full synchronous pipeline
+    start_time = time.perf_counter()
     downloaded_paths = download_images(IMAGE_URLS)
+
+    proc_start_time = time.perf_counter()
     processed_paths = process_images(downloaded_paths, 100_000_000)
 
-    t2 = time.perf_counter()
-
+    finish_time = time.perf_counter()
+    
+    dl_total_time = proc_start_time - start_time
+    proc_total_time = finish_time - proc_start_time
+    total_time = finish_time - start_time
+    
+    dl_percent = dl_total_time / total_time * 100
+    proc_percent = proc_total_time / total_time * 100
+    
     print("\n--- Summary ---")
-    print(f"Downloaded {len(downloaded_paths)} images.")
-    print(f"Processed {len(processed_paths)} images.")
-    print(f"Total time taken: {t2 - t1:.2f} seconds")
+    print(f"Downloaded {len(downloaded_paths)} images in {dl_total_time:.2f} seconds ({dl_percent:.2f}% of total time.")
+    print(f"Processed {len(processed_paths)} images in {proc_total_time:.2f} seconds ({proc_percent:.2f}% of total time.")
