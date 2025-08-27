@@ -105,3 +105,9 @@ if __name__ == '__main__':
     print("\n--- Summary ---")
     print(f"Downloaded {len(downloaded_paths)} images in {dl_total_time:.2f} seconds ({dl_percent:.2f}% of total time.")
     print(f"Processed {len(processed_paths)} images in {proc_total_time:.2f} seconds ({proc_percent:.2f}% of total time.")
+
+    """
+    --- Summary ---
+    Downloaded 12 images in 11.07 seconds (40.96% of total time.
+    Processed 12 images in 15.96 seconds (59.04% of total time.
+    """
