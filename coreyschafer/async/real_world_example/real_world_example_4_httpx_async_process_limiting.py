@@ -1,9 +1,17 @@
 import asyncio
+from asyncio import tasks
+from concurrent.futures import ProcessPoolExecutor
+import os
 import shutil
 import time
 from pathlib import Path
 
 import requests
+import httpx
+import aiofiles
+
+DOWNLOAD_LIMIT = 4
+CPU_WORKERS = os.cpu_count()
 
 IMAGE_URLS = [
     "https://images.unsplash.com/photo-1516117172878-fd2c41f4a759?w=1920&h=1080&fit=crop",
@@ -24,7 +32,7 @@ ORIGINAL_DIR = Path('data/original_images')
 PROCESSED_DIR = Path('data/processed_images')
 
 
-def download_image(url: str, img_num: int) -> Path:
+async def download_image(client: httpx.AsyncClient, url: str, img_num: int, semaphore: asyncio.Semaphore) -> Path:
     """
     downloads single image and computes timing
     """
@@ -32,17 +40,18 @@ def download_image(url: str, img_num: int) -> Path:
     
     ts = int(time.time())
     url = f'{url}?ts={ts}'  # add timestamp for caching issues
-    
-    response = requests.get(url, timeout=10, allow_redirects=True, stream=True)
-    response.raise_for_status()
-
-    # The stream=True parameter ensures memory-efficient downloads.
-    filename = f'image_{img_num}.jpg'
-    download_path = ORIGINAL_DIR / filename
     print(f"Start downloading {url[:url.find('?')]}")
-    with download_path.open('wb') as f:
-        for chunk in response.iter_content(chunk_size=8192):
-            f.write(chunk)
+    async with semaphore:
+        response = await client.get(url, timeout=10, follow_redirects=True)
+        response.raise_for_status()
+
+        # The stream=True parameter ensures memory-efficient downloads.
+        filename = f'image_{img_num}.jpg'
+        download_path = ORIGINAL_DIR / filename
+        
+        async with aiofiles.open(download_path,'wb') as f:
+            async for chunk in response.aiter_bytes(chunk_size=8192):
+                await f.write(chunk)
     
     t2 = time.perf_counter()
     print(f'Downloaded url {url[:url.find("?")]} in {download_path} in {t2 - t1:.2f} seconds.')
@@ -53,13 +62,17 @@ async def download_images(urls: list[str]) -> list[Path]:
     """
     Download list of images using a single session
     """
-    async with asyncio.TaskGroup() as tg:
-        results = [
-            tg.create_task(
-                asyncio.to_thread(download_image, url, i)
-            )
-            for i, url in enumerate(urls, start=1)
-        ]
+    dl_semaphore = asyncio.Semaphore(DOWNLOAD_LIMIT)
+    async with httpx.AsyncClient() as client:
+        async with asyncio.TaskGroup() as tg:
+            results = [
+                tg.create_task(
+                    # asyncio.to_thread(
+                        download_image(client, url, i, dl_semaphore)
+                        # )
+                )
+                for i, url in enumerate(urls, start=1)
+            ]
     img_paths = [result.result() for result in results]
     return img_paths
 
@@ -72,7 +85,6 @@ def process_single_image(orig_path: Path, max_count: int = 20_000_000) -> Path:
     """
     t1 = time.perf_counter()
     save_path = PROCESSED_DIR / orig_path.name
-    
     print(f"Start processing {orig_path.name} ({max_count})")
     count = 0
     while count < max_count:
@@ -91,17 +103,33 @@ async def process_images(orig_paths: list[Path], max_count: int = 20_000_000) ->
     simulates image processing from a list of paths
     creates task from threads from sync function call
     """
-    async with asyncio.TaskGroup() as tg:                           # task group
-        results = [
-            tg.create_task(                                         # task
-                asyncio.to_thread(                                  # thread
-                    process_single_image, orig_path, max_count
-                )
+    # async with asyncio.TaskGroup() as tg:                           # task group
+    #     results = [
+    #         tg.create_task(                                         # task
+    #             asyncio.to_thread(                                  # thread
+    #                 process_single_image, orig_path, max_count
+    #             )
+    #         )
+    #         for orig_path in orig_paths
+    #     ]
+    # img_paths = [result.result() for result in results]             # gather results
+    # return img_paths
+    loop = asyncio.get_running_loop()
+    
+    with ProcessPoolExecutor(max_workers=CPU_WORKERS) as excecutor:
+        tasks = [
+            loop.run_in_executor(
+                excecutor,
+                process_single_image,
+                orig_path,
+                max_count
             )
             for orig_path in orig_paths
         ]
-    img_paths = [result.result() for result in results]             # gather results
+    img_paths = await asyncio.gather(*tasks)
     return img_paths
+    
+    
 
 
 async def main():
@@ -113,14 +141,14 @@ async def main():
         
         # Run the full synchronous pipeline
         start_time = time.perf_counter()
-        print('-------- start downloading images --------')
+        print(f'-------- start downloading images {DOWNLOAD_LIMIT = } --------')
         downloaded_paths = await download_images(IMAGE_URLS)
-        print('-------- end downloading images --------')
+        print(f'-------- end downloading images {DOWNLOAD_LIMIT = } --------')
 
         proc_start_time = time.perf_counter()
-        print('-------- start processing images --------')
+        print(f'-------- start processing images {CPU_WORKERS = } --------')
         processed_paths = await process_images(downloaded_paths, 100_000_000)
-        print('-------- end processing images --------')
+        print(f'-------- end processing images {CPU_WORKERS = } --------')
 
         finish_time = time.perf_counter()
         
@@ -132,13 +160,17 @@ async def main():
         proc_percent = proc_total_time / total_time * 100
         
         print("\n--- Summary ---")
+        print(f'{DOWNLOAD_LIMIT = }')
+        print(f'{CPU_WORKERS = }')
         print(f"Downloaded {len(downloaded_paths)} images in {dl_total_time:.2f} seconds ({dl_percent:.2f}% of total time.")
         print(f"Processed {len(processed_paths)} images in {proc_total_time:.2f} seconds ({proc_percent:.2f}% of total time.")
         
         """
         --- Summary ---
-        Downloaded 12 images in 1.55 seconds (8.96% of total time.
-        Processed 12 images in 15.76 seconds (91.04% of total time.
+        DOWNLOAD_LIMIT = 4
+        CPU_WORKERS = 8
+        Downloaded 12 images in 3.57 seconds (48.83% of total time.
+        Processed 12 images in 3.74 seconds (51.17% of total time.
         """
 
 

@@ -24,6 +24,9 @@ PROCESSED_DIR = Path('data/processed_images')
 
 
 def download_image(session: requests.Session, url: str, img_num: int) -> Path:
+    """
+    downloads single image and computes timing
+    """
     t1 = time.perf_counter()
     
     ts = int(time.time())
@@ -46,6 +49,9 @@ def download_image(session: requests.Session, url: str, img_num: int) -> Path:
 
 
 def download_images(urls: list[str]) -> list[Path]:
+    """
+    Download list of images using a single session
+    """
     with requests.Session() as session:
         image_paths = [
             download_image(session, url, i)
@@ -56,12 +62,14 @@ def download_images(urls: list[str]) -> list[Path]:
 
 
 def process_single_image(orig_path: Path, max_count: int = 20_000_000) -> Path:
+    """
+    Simulate a CPU-bound task (like image processing) by running
+    a tight loop that performs many calculations.
+    Adjust the number to make the task longer or shorter.
+    """
     t1 = time.perf_counter()
     save_path = PROCESSED_DIR / orig_path.name
     
-    # Simulate a CPU-bound task (like image processing) by running
-    # a tight loop that performs many calculations.
-    # Adjust the number to make the task longer or shorter.
     count = 0
     while count < max_count:
         count += 1
@@ -75,16 +83,22 @@ def process_single_image(orig_path: Path, max_count: int = 20_000_000) -> Path:
 
 
 def process_images(orig_paths: list[Path], max_count: int = 20_000_000) -> list[Path]:
-    img_paths = [process_single_image(orig_path, max_count) for orig_path in orig_paths]
+    """
+    simulates image processing from a list of paths
+    """
+    img_paths = [
+        process_single_image(orig_path, max_count) 
+        for orig_path in orig_paths
+    ]
     return img_paths
 
 
 if __name__ == '__main__':
     
-    shutil.rmtree(ORIGINAL_DIR, ignore_errors=True)
+    shutil.rmtree(ORIGINAL_DIR, ignore_errors=True)         # remove data folder
     
-    ORIGINAL_DIR.mkdir(parents=True, exist_ok=True)
-    PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
+    ORIGINAL_DIR.mkdir(parents=True, exist_ok=True)         # create original images data folder
+    PROCESSED_DIR.mkdir(parents=True, exist_ok=True)        # create processed images data folder
     
     # Run the full synchronous pipeline
     start_time = time.perf_counter()
@@ -95,6 +109,7 @@ if __name__ == '__main__':
 
     finish_time = time.perf_counter()
     
+    # compute time stats
     dl_total_time = proc_start_time - start_time
     proc_total_time = finish_time - proc_start_time
     total_time = finish_time - start_time
@@ -105,7 +120,7 @@ if __name__ == '__main__':
     print("\n--- Summary ---")
     print(f"Downloaded {len(downloaded_paths)} images in {dl_total_time:.2f} seconds ({dl_percent:.2f}% of total time.")
     print(f"Processed {len(processed_paths)} images in {proc_total_time:.2f} seconds ({proc_percent:.2f}% of total time.")
-
+    
     """
     --- Summary ---
     Downloaded 12 images in 11.07 seconds (40.96% of total time.
