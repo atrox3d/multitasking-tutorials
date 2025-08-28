@@ -98,23 +98,12 @@ async def process_images(orig_paths: list[Path], max_count: int = 20_000_000) ->
     simulates image processing from a list of paths
     creates task from threads from sync function call
     """
-    # async with asyncio.TaskGroup() as tg:                           # task group
-    #     results = [
-    #         tg.create_task(                                         # task
-    #             asyncio.to_thread(                                  # thread
-    #                 process_single_image, orig_path, max_count
-    #             )
-    #         )
-    #         for orig_path in orig_paths
-    #     ]
-    # img_paths = [result.result() for result in results]             # gather results
-    # return img_paths
-    loop = asyncio.get_running_loop()
+    loop = asyncio.get_running_loop()               # get async event loop
     
-    with ProcessPoolExecutor() as excecutor:
+    with ProcessPoolExecutor() as executor:        
         tasks = [
             loop.run_in_executor(
-                excecutor,
+                executor,
                 process_single_image,
                 orig_path,
                 max_count

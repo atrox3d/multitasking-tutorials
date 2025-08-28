@@ -62,18 +62,16 @@ async def download_images(urls: list[str]) -> list[Path]:
     """
     Download list of images using a single session
     """
-    dl_semaphore = asyncio.Semaphore(DOWNLOAD_LIMIT)
-    async with httpx.AsyncClient() as client:
-        async with asyncio.TaskGroup() as tg:
+    dl_semaphore = asyncio.Semaphore(DOWNLOAD_LIMIT)                    # async semaphore shared between tasks
+    async with httpx.AsyncClient() as client:                           # async httpx client  
+        async with asyncio.TaskGroup() as tg:                           # task group
             results = [
-                tg.create_task(
-                    # asyncio.to_thread(
-                        download_image(client, url, i, dl_semaphore)
-                        # )
+                tg.create_task(                                         # task
+                    download_image(client, url, i, dl_semaphore)        # coroutine
                 )
                 for i, url in enumerate(urls, start=1)
             ]
-    img_paths = [result.result() for result in results]
+    img_paths = [result.result() for result in results]                 # futures
     return img_paths
 
 
@@ -103,30 +101,19 @@ async def process_images(orig_paths: list[Path], max_count: int = 20_000_000) ->
     simulates image processing from a list of paths
     creates task from threads from sync function call
     """
-    # async with asyncio.TaskGroup() as tg:                           # task group
-    #     results = [
-    #         tg.create_task(                                         # task
-    #             asyncio.to_thread(                                  # thread
-    #                 process_single_image, orig_path, max_count
-    #             )
-    #         )
-    #         for orig_path in orig_paths
-    #     ]
-    # img_paths = [result.result() for result in results]             # gather results
-    # return img_paths
-    loop = asyncio.get_running_loop()
+    loop = asyncio.get_running_loop()                                   # get event loop
     
-    with ProcessPoolExecutor(max_workers=CPU_WORKERS) as excecutor:
+    with ProcessPoolExecutor(max_workers=CPU_WORKERS) as executor:      # get process loop
         tasks = [
-            loop.run_in_executor(
-                excecutor,
+            loop.run_in_executor(                                       # run process in event loop
+                executor,                                               # process executor 
                 process_single_image,
                 orig_path,
                 max_count
             )
             for orig_path in orig_paths
         ]
-    img_paths = await asyncio.gather(*tasks)
+    img_paths = await asyncio.gather(*tasks)                            # gather results
     return img_paths
     
     

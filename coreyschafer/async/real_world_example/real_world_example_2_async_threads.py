@@ -53,14 +53,14 @@ async def download_images(urls: list[str]) -> list[Path]:
     """
     Download list of images using a single session
     """
-    async with asyncio.TaskGroup() as tg:
+    async with asyncio.TaskGroup() as tg:                           # task group
         results = [
-            tg.create_task(
-                asyncio.to_thread(download_image, url, i)
+            tg.create_task(                                         # task
+                asyncio.to_thread(download_image, url, i)           # thread from sync
             )
             for i, url in enumerate(urls, start=1)
         ]
-    img_paths = [result.result() for result in results]
+    img_paths = [result.result() for result in results]             # gather results from futures
     return img_paths
 
 
@@ -94,13 +94,13 @@ async def process_images(orig_paths: list[Path], max_count: int = 20_000_000) ->
     async with asyncio.TaskGroup() as tg:                           # task group
         results = [
             tg.create_task(                                         # task
-                asyncio.to_thread(                                  # thread
+                asyncio.to_thread(                                  # thread from sync
                     process_single_image, orig_path, max_count
                 )
             )
             for orig_path in orig_paths
         ]
-    img_paths = [result.result() for result in results]             # gather results
+    img_paths = [result.result() for result in results]             # gather results from futures
     return img_paths
 
 

@@ -36,16 +36,16 @@ async def download_image(client: httpx.AsyncClient, url: str, img_num: int) -> P
     ts = int(time.time())
     url = f'{url}?ts={ts}'  # add timestamp for caching issues
     print(f"Start downloading {url[:url.find('?')]}")
-    response = await client.get(url, timeout=10, follow_redirects=True)
+    response = await client.get(url, timeout=10, follow_redirects=True)     # await async get
     response.raise_for_status()
 
     # The stream=True parameter ensures memory-efficient downloads.
     filename = f'image_{img_num}.jpg'
     download_path = ORIGINAL_DIR / filename
     
-    async with aiofiles.open(download_path,'wb') as f:
-        async for chunk in response.aiter_bytes(chunk_size=8192):
-            await f.write(chunk)
+    async with aiofiles.open(download_path,'wb') as f:                      # async open
+        async for chunk in response.aiter_bytes(chunk_size=8192):           # async iter
+            await f.write(chunk)                                            # async write   
     
     t2 = time.perf_counter()
     print(f'Downloaded url {url[:url.find("?")]} in {download_path} in {t2 - t1:.2f} seconds.')
@@ -56,17 +56,15 @@ async def download_images(urls: list[str]) -> list[Path]:
     """
     Download list of images using a single session
     """
-    async with httpx.AsyncClient() as client:
-        async with asyncio.TaskGroup() as tg:
+    async with httpx.AsyncClient() as client:                           # async httpx client
+        async with asyncio.TaskGroup() as tg:                           # task group    
             results = [
-                tg.create_task(
-                    # asyncio.to_thread(
-                        download_image(client, url, i)
-                        # )
+                tg.create_task(                                         # task
+                    download_image(client, url, i)                      # coroutine
                 )
                 for i, url in enumerate(urls, start=1)
             ]
-    img_paths = [result.result() for result in results]
+    img_paths = [result.result() for result in results]                 # gather results from futures
     return img_paths
 
 
